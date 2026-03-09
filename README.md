@@ -1,12 +1,4 @@
----
-title: Omniverse - ROS2 Robot Stack
-emoji: 🤖
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-pinned: false
-app_port: 7860
----
+
 
 # Omniverse: Multi-Robot Fleet Management Platform
 
@@ -16,7 +8,7 @@ Simulate real hardware robots through ROS 2. Control them via a web-based, real-
 
 ---
 
-## 🚀 Overview
+##  Overview
 
 Omniverse is a full-stack, distributed robotics platform engineered to mirror enterprise-level robotics infrastructure. It bridges the gap between low-level hardware control and high-level web accessibility, providing a seamless operational interface for multi-robot fleets.
 
