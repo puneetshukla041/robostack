@@ -18,7 +18,7 @@ Omniverse is a full-stack, distributed robotics platform engineered to mirror en
 - **Next.js 16 Dashboard** featuring real-time, low-latency 3D visualization using React Three Fiber.
 - **ML Microservice** (PyTorch + FastAPI) for computer vision, spatial awareness, and intelligent perception.
 
-## 🏗️ System Architecture & Data Flow
+##  System Architecture & Data Flow
 
 The system is decoupled into isolated, highly cohesive microservices communicating via WebSocket, REST, and DDS (Data Distribution Service).
 
