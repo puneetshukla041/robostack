@@ -1,0 +1,28 @@
+{
+  "name": "backend",
+  "author": "Mayank <steeltroops.ai@gmail.com>",
+  "module": "index.ts",
+  "type": "module",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "start": "bun src/index.ts",
+    "rebuild": "node node_modules/rclnodejs/scripts/generate_messages.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'No lint configured for backend'"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsx": "^4.21.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "rclnodejs": "^1.8.1",
+    "socket.io": "^4.8.3"
+  }
+}

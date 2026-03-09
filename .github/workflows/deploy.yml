@@ -1,0 +1,200 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - 'docs/**'
+      - '.agent/**'
+      - 'scripts/**'
+
+jobs:
+  # Detect changes to optimize job execution
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend }}
+      robotics: ${{ steps.filter.outputs.robotics }}
+      shared: ${{ steps.filter.outputs.shared }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'apps/frontend/**'
+              - 'package.json'
+              - 'bun.lock'
+            backend:
+              - 'apps/backend/**'
+              - 'package.json'
+              - 'bun.lock'
+            robotics:
+              - 'robotics/ros2_ws/**'
+              - 'Dockerfile'
+              - 'hf_entrypoint.sh'
+            shared:
+              - 'packages/shared-types/**'
+            infra:
+              - '.github/workflows/**'
+
+  validate:
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (Monorepo)
+        run: bun install --frozen-lockfile
+
+      - name: Type Check (Frontend)
+        if: ${{ needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true' }}
+        working-directory: ./apps/frontend
+        run: bun x tsc --noEmit
+
+      - name: Lint Check (Frontend)
+        if: ${{ needs.changes.outputs.frontend == 'true' }}
+        working-directory: ./apps/frontend
+        run: bun run lint
+
+      - name: Type Check (Backend)
+        if: ${{ needs.changes.outputs.backend == 'true' || needs.changes.outputs.shared == 'true' }}
+        working-directory: ./apps/backend
+        run: bun run typecheck
+
+  ros-validate:
+    needs: changes
+    if: ${{ needs.changes.outputs.robotics == 'true' }}
+    runs-on: ubuntu-latest
+    container:
+      image: ros:humble-ros-base
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          apt-get update && apt-get install -y \
+            python3-colcon-common-extensions \
+            python3-pip \
+            ros-humble-navigation2 \
+            ros-humble-nav2-bringup
+          
+      - name: Build ROS 2 Workspace
+        working-directory: ./robotics/ros2_ws
+        run: |
+          /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --symlink-install"
+
+      - name: Test ROS 2 Workspace
+        working-directory: ./robotics/ros2_ws
+        run: |
+          /bin/bash -c "source /opt/ros/humble/setup.bash && colcon test --event-handlers console_direct+ --packages-select simulation_manager amr_navigation"
+          /bin/bash -c "source /opt/ros/humble/setup.bash && colcon test-result"
+
+  deploy-backend:
+    needs: [changes, validate, ros-validate]
+    if: |
+      always() &&
+      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.robotics == 'true' || needs.changes.outputs.shared == 'true') &&
+      (needs.validate.result == 'success' || needs.validate.result == 'skipped') &&
+      (needs.ros-validate.result == 'success' || needs.ros-validate.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pristine Prune for Backend
+        run: |
+          # Create a temporary branch for a clean HF push
+          git checkout -b hf-deploy
+          
+          # 1. Prune 'apps' to keep only backend
+          if [ -d "apps" ]; then
+            find apps -mindepth 1 -maxdepth 1 ! -name 'backend' -exec rm -rf {} +
+          else
+            mkdir apps
+          fi
+          
+          # 2. Prune 'packages' to keep only shared-types
+          if [ -d "packages" ]; then
+            find packages -mindepth 1 -maxdepth 1 ! -name 'shared-types' -exec rm -rf {} +
+          else
+            mkdir packages
+          fi
+          
+          # 3. Prune root level directories except the essentials
+          find . -maxdepth 1 -type d ! -name '.' ! -name '.git' ! -name 'apps' ! -name 'robotics' ! -name 'packages' -exec rm -rf {} +
+          
+          # 4. Prune root level files except the essentials
+          find . -maxdepth 1 -type f ! -name 'Dockerfile' ! -name 'hf_entrypoint.sh' ! -name 'package.json' ! -name 'bun.lock' ! -name 'README.md' ! -name '.dockerignore' -exec rm -rf {} +
+          
+          # 5. Update package.json to remove non-existent workspaces
+          python3 -c '
+          import json
+          import os
+          with open("package.json", "r+") as f:
+              data = json.load(f)
+              # Only keep workspaces that actually still exist after pruning
+              data["workspaces"] = [w for w in data["workspaces"] if os.path.exists(w.replace("/*", ""))]
+              f.seek(0)
+              json.dump(data, f, indent=2)
+              f.truncate()
+          '
+          
+          # Commit the pristine state
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "chore(deploy): pristine prune for backend-only HF push"
+
+      - name: Build and Push to HF
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_SPACE: ${{ secrets.HF_SPACE }}
+        run: |
+          git remote add hf https://root:$HF_TOKEN@huggingface.co/spaces/$HF_SPACE || git remote set-url hf https://root:$HF_TOKEN@huggingface.co/spaces/$HF_SPACE
+          # Push the pruned branch to HF main
+          git push --force hf hf-deploy:main
+
+  deploy-frontend:
+    needs: [changes, validate]
+    if: |
+      always() &&
+      (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.shared == 'true') &&
+      (needs.validate.result == 'success' || needs.validate.result == 'skipped')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (Monorepo)
+        run: bun install --frozen-lockfile
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./

@@ -1,0 +1,282 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* 
+   * Theme: "Liquid Glass"
+   * Deep translucent multi-layer glass with high-tech accents over rich landscapes.
+   */
+  --background: transparent;
+  --foreground: #e2e8f0;
+  
+  --card: rgba(20, 20, 24, 0.45);
+  --card-foreground: #ffffff;
+  
+  --popover: rgba(20, 20, 24, 0.65);
+  --popover-foreground: #ffffff;
+  
+  --primary: #10b981; /* Neon Green / Teal */
+  --primary-foreground: #000000;
+  
+  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary-foreground: #ffffff;
+  
+  --muted: rgba(255, 255, 255, 0.03);
+  --muted-foreground: #94a3b8;
+  
+  --accent: rgba(16, 185, 129, 0.2); 
+  --accent-foreground: #10b981;
+  
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  
+  --border: rgba(255, 255, 255, 0.08); /* Thin transparent specular edge */
+  --input: rgba(255, 255, 255, 0.05);
+  --ring: rgba(16, 185, 129, 0.5);
+  
+  --radius: 0.75rem;
+
+  /* Semantic Layout Tokens */
+  --color-surface-0: transparent;
+  --color-surface-1: rgba(10, 10, 12, 0.5); /* Sidebar */
+  --color-surface-2: rgba(255, 255, 255, 0.03);
+  --color-surface-3: rgba(255, 255, 255, 0.05);
+  --color-surface-4: rgba(255, 255, 255, 0.1);
+  
+  --color-text-0: #ffffff; 
+  --color-text-1: #cbd5e1; 
+  --color-text-2: #94a3b8; 
+  --color-text-3: #64748b; 
+  --color-text-4: #475569; 
+  
+  --color-border-0: rgba(255, 255, 255, 0.08); 
+  --color-border-1: rgba(255, 255, 255, 0.15); 
+  
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+}
+
+.dark {
+  --background: transparent;
+  --foreground: #e2e8f0;
+  
+  --card: rgba(20, 20, 24, 0.45);
+  --card-foreground: #ffffff;
+  
+  --popover: rgba(20, 20, 24, 0.65);
+  --popover-foreground: #ffffff;
+  
+  --primary: #10b981;
+  --primary-foreground: #000000;
+  
+  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary-foreground: #ffffff;
+  
+  --muted: rgba(255, 255, 255, 0.03);
+  --muted-foreground: #94a3b8;
+  
+  --accent: rgba(16, 185, 129, 0.2); 
+  --accent-foreground: #10b981;
+  
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.05);
+  --ring: rgba(16, 185, 129, 0.5);
+
+  --color-surface-0: transparent;
+  --color-surface-1: rgba(10, 10, 12, 0.5); /* Sidebar */
+  --color-surface-2: rgba(255, 255, 255, 0.03);
+  --color-surface-3: rgba(255, 255, 255, 0.05);
+  --color-surface-4: rgba(255, 255, 255, 0.1);
+  
+  --color-text-0: #ffffff;
+  --color-text-1: #cbd5e1;
+  --color-text-2: #94a3b8;
+  --color-text-4: #475569;
+  
+  --color-border-0: rgba(255, 255, 255, 0.08);
+  --color-border-1: rgba(255, 255, 255, 0.15);
+}
+
+@theme {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  
+  --radius-radius: var(--radius);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    
+    /* Dramatic Landscape Wallpaper */
+    background-image: url('/bg-landscape.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-color: #050505;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+@utility scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  /* High-Tech Liquid Glass Panels */
+  .metric-card {
+    background: rgba(20, 20, 24, 0.4);
+    backdrop-filter: blur(24px) saturate(120%);
+    -webkit-backdrop-filter: blur(24px) saturate(120%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 8px 32px -4px rgba(0,0,0,0.5);
+  }
+  
+  .metric-card:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    background: rgba(25, 25, 30, 0.5);
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.1),
+      inset 0 0 20px rgba(16,185,129,0.05),
+      0 12px 48px -4px rgba(0,0,0,0.6);
+  }
+
+  .metric-value {
+    @apply text-3xl font-mono tracking-tight tabular-nums;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  }
+  .metric-label {
+    @apply text-xs font-semibold uppercase tracking-widest text-[var(--color-primary)] mt-1;
+    font-family: var(--font-mono), monospace;
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full shrink-0 animate-pulse;
+  }
+  .status-dot--online {
+    background-color: var(--color-success);
+    box-shadow: 0 0 12px 2px var(--color-success);
+  }
+  .status-dot--offline {
+    background-color: var(--muted-foreground);
+    opacity: 0.5;
+  }
+  .status-dot--error {
+    background-color: var(--color-error);
+    box-shadow: 0 0 12px 2px var(--color-error);
+  }
+
+  /* Structural Panels with Glass */
+  .panel {
+    background: rgba(15, 15, 20, 0.55);
+    backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    border: 1px solid var(--border);
+    border-radius: 1.25rem;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      0 32px 128px rgba(0, 0, 0, 0.8);
+  }
+  
+  .panel-header {
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .panel-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--font-mono), monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-text-1);
+  }
+
+  /* Data Rows */
+  .robot-row {
+     @apply grid items-center gap-4 px-5 py-3 border-b border-[var(--color-border-0)] transition-all cursor-pointer;
+     grid-template-columns: 1fr auto auto auto auto;
+     background: transparent;
+  }
+  .robot-row:hover {
+    background: rgba(255,255,255,0.04);
+  }
+  .robot-row:last-child {
+    border-bottom: none;
+  }
+  .robot-row--selected {
+    background: linear-gradient(90deg, rgba(16,185,129,0.15) 0%, transparent 100%);
+    border-left: 2px solid var(--primary);
+  }
+}
+
